@@ -1,0 +1,40 @@
+import bpy
+
+def return_hierarchy(ob):
+	hierarchyList = []
+	def recurse(ob):
+		hierarchyList.append(ob)
+		if not len(ob.children) == 0:
+			for child in ob.children:
+				recurse(child)
+		return
+	recurse(ob)
+	return hierarchyList
+
+selectedList = bpy.context.selected_objects
+for selected in selectedList:
+	print(selected.name)
+	deleteObjList = []
+	newName = selected.name
+	newParent = selected.parent
+
+	bpy.ops.object.select_all(action='DESELECT')
+	hierarchy_selected = return_hierarchy(selected)
+	for ob in hierarchy_selected:
+		if ob.type == 'MESH':
+			ob.select_set(True)
+			bpy.context.view_layer.objects.active = ob
+		else:
+			ob.select_set(False)
+			deleteObjList.append(ob)
+	bpy.ops.object.join()
+	activeObj = bpy.context.active_object
+
+	bpy.ops.object.select_all(action='DESELECT')
+	for deleteObj in deleteObjList:
+		deleteObj.select_set(True)
+		bpy.ops.object.delete()
+
+	activeObj.name = newName
+	activeObj.data.name = newName
+	activeObj.parent = newParent
